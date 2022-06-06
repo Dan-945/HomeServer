@@ -1,1 +1,63 @@
+---
+version: "2"
+services:
+  homer:
+    image: b4bz/homer
+    container_name: homer
+    volumes:
+      - /home/pi/Pool4Configs/DockerConfigs/Homer:/www/assets
+    ports:
+      - 8080:8080
+    #environment:
+    #  - UID=1000
+    #  - GID=1000
+    restart: unless-stopped
+  Portainer:
+    image: portainer/portainer-ce:latest
+    container_name: Portainer
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /home/pi/Pool4Configs/DockerConfigs/Portainer/:/data
+    ports:
+      - 9000:9000
+    #environment:
+    #  - UID=1000
+    #  - GID=1000
+    restart: unless-stopped
 
+  transmission-openvpn:
+        image: haugene/transmission-openvpn
+        container_name: Transmission
+        cap_add:
+            - NET_ADMIN
+        volumes:
+            - '/home/pi/Pool4Configs/DockerConfigs/Transmission/:/config'
+            - '/mnt/Transmission/:/data'
+        environment:
+            - OPENVPN_PROVIDER=PIA
+            - OPENVPN_CONFIG=sweden
+            - OPENVPN_USERNAME=p1679432
+            - OPENVPN_PASSWORD=GC37VMX6n5
+            - LOCAL_NETWORK=192.168.0.0/16
+            - TRANSMISSION_WATCH_DIR_FORCE_GENERIC=true
+            - TRANSMISSION_WEB_UI=flood-for-transmission
+            - TRANSMISSION_DHT_ENABLED=false
+            - TRANSMISSION_PEX_ENABLED=false
+            - TRANSMISSION_HOME=/config
+            - TZ=NO
+        logging:
+            driver: json-file
+            options:
+                max-size: 10m
+        ports:
+            - '9091:9091'
+        restart: unless-stopped
+        network_mode: bridge
+        logging:
+            driver: json-file
+            options:
+                max-size: 10m
