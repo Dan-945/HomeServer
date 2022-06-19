@@ -1,11 +1,10 @@
----
 version: "2"
 services:
   homer:
     image: b4bz/homer
     container_name: homer
     volumes:
-      - /home/pi/Pool4Configs/DockerConfigs/Homer:/www/assets
+      - /mnt/Pool4Configs/DockerConfigs/Homer:/www/assets
     ports:
       - 8080:8080
     #environment:
@@ -16,27 +15,26 @@ services:
     image: portainer/portainer-ce:latest
     container_name: Portainer
     restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
+    #security_opt:
+     # - no-new-privileges:true
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /home/pi/Pool4Configs/DockerConfigs/Portainer/:/data
+      - '/etc/localtime:/etc/localtime:ro'
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+      - '/mnt/Pool4Configs/DockerConfigs/Portainer/:/data'
     ports:
-      - 9000:9000
+      - '9000:9000'
     #environment:
     #  - UID=1000
     #  - GID=1000
-    restart: unless-stopped
-
+    
   transmission-openvpn:
         image: haugene/transmission-openvpn
         container_name: Transmission
         cap_add:
             - NET_ADMIN
         volumes:
-            - '/home/pi/Pool4Configs/DockerConfigs/Transmission/:/config'
-            - '/mnt/Transmission/:/data'
+            - '/mnt/Pool4Configs/DockerConfigs/Transmission/:/config'
+            - '/mnt/Downloads/Transmission/:/data'
         environment:
             - OPENVPN_PROVIDER=PIA
             - OPENVPN_CONFIG=sweden
@@ -49,10 +47,6 @@ services:
             - TRANSMISSION_PEX_ENABLED=false
             - TRANSMISSION_HOME=/config
             - TZ=NO
-        logging:
-            driver: json-file
-            options:
-                max-size: 10m
         ports:
             - '9091:9091'
         restart: unless-stopped
@@ -61,3 +55,34 @@ services:
             driver: json-file
             options:
                 max-size: 10m
+  satisfactory-server:
+        container_name: 'satisfactory-server'
+        hostname: 'satisfactory-server'
+        image: 'wolveix/satisfactory-server:latest'
+        ports:
+            - '7777:7777/udp'
+            - '15000:15000/udp'
+            - '15777:15777/udp'
+        volumes:
+            - '/mnt/DedicatedServer/Satisfactory:/config'
+        environment:
+            #- MAXPLAYERS=4
+            - PGID=1000
+            - PUID=1000
+            - STEAMBETA=false
+        restart: unless-stopped
+        network_mode: bridge
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    volumes:
+      - /mnt/Pool4Configs/DockerConfigs/Sonarr:/config
+      - /mnt/Pool1Media:/tv #optional
+      - /mnt/Downloads/Transmission:/downloads #optional
+    ports:
+      - 8989:8989
+    restart: unless-stopped
