@@ -1,0 +1,84 @@
+version: "2"
+services:
+  transmission-openvpn:
+    image: haugene/transmission-openvpn
+    container_name: Transmission
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - /home/ubuntu/Transmission/config:/config
+      - /home/ubuntu/Transmission/data:/data
+      - /home/ubuntu/Transmission/Watch:/watch #optional
+    #environment:
+    #  - UID=1000
+    #  - GID=1000
+    environment:
+      - OPENVPN_PROVIDER=PIA
+      - OPENVPN_CONFIG=sweden
+      - OPENVPN_USERNAME=p1679432
+      - OPENVPN_PASSWORD=GC37VMX6n5
+      - LOCAL_NETWORK=192.168.0.0/16
+      - TRANSMISSION_WATCH_DIR_FORCE_GENERIC=true
+      - TRANSMISSION_WEB_UI=flood-for-transmission
+      - TRANSMISSION_DHT_ENABLED=false
+      - TRANSMISSION_PEX_ENABLED=false
+      - TRANSMISSION_HOME=/config
+      - TZ=NO
+    ports:
+      - 9091:9091
+    restart: unless-stopped
+    network_mode: bridge
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    network_mode: bridge
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    volumes:
+      - /home/ubuntu/Sonarr/:/config
+      - /home/ubuntu/media/tv:/tv
+      - /home/ubuntu/Transmission/data/completed:/downloads
+      - /home/ubuntu/Transmission/data/watch:/Watch
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+  jackett:
+    image: lscr.io/linuxserver/jackett:latest
+    container_name: jackett
+    network_mode: bridge
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - AUTO_UPDATE=true
+      - RUN_OPTS=
+    volumes:
+      - /home/ubuntu/Jackett/:/config
+      - /home/ubuntu/Transmission/data/watch:/downloads #optional
+    ports:
+      - 9117:9117
+    restart: unless-stopped
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    network_mode: bridge
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - VERSION=docker
+      - PLEX_CLAIM= claim-TWqBq4i4oG9TEesK2cZT
+    volumes:
+      - /home/ubuntu/Plex:/config
+      - /home/ubuntu/media/tv:/tv
+      - /home/ubuntu/media/movies:/movies
+    ports:
+      - 32400:32400
+    restart: unless-stopped
+networks: {}
